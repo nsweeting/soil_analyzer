@@ -1,4 +1,4 @@
-# SoilAnalyzer
+# Soil Analyzer
 
 To start your Phoenix server:
 
