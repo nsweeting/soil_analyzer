@@ -1,0 +1,17 @@
+<form phx-submit="run">
+    <select name="processor">
+        <option value="water_concentration">Water Concentration</option>
+    </select>
+    <%= if @errors do %>
+        <p class="alert alert-danger" role="alert">
+            <%= for error <- @errors do %>
+                • <%= error %></h5>
+            <% end %>
+        </p>
+    <% end %>
+    <input type="text" name="input" value="<%= @input %>" placeholder="Input..." <%= if @loading, do: "readonly" %>/>
+    <%= submit "Submit" %>
+    <%= if @request do %>
+        <%= render "_water_concentration.html", request: @request %>
+    <% end %>
+</form>

@@ -1,0 +1,23 @@
+<%= if @request.processor == SoilAnalyzer.Processors.WaterConcentration do %>
+    <div class="container">
+        <table>
+            <tr>
+                <th>Output</th>
+            </tr>
+            <%= for {x, y, score: score} <- @request.output do %>
+                <tr>
+                    <td>(<%= x %>, <%= y %> score: <%= score %>)</td>
+                </tr>
+            <% end %>
+        </table>
+        <%= for row <- @request.assigns.sorted_grid do %>
+            <div class="row">
+                <%= for {{x, y}, _} <- row do %>
+                    <div class="column" onclick="showGridItem('grid-<%= x %>-<%= y %>')" style="text-align:center;border: 0.1rem solid #e1e1e1;background-color:<%= get_colour(@request, x, y) %>;">
+                        <p id="grid-<%= x %>-<%= y %>" style="visibility:hidden;margin:15px;"><%= get_score(@request, x, y) %></p>
+                    </div>
+                <% end %>
+            </div>
+        <% end %>
+    </div>
+<% end %>

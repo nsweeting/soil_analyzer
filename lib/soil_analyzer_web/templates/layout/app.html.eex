@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Soil Analyzer</title>
+    <link rel="stylesheet" href="<%= Routes.static_path(@conn, "/css/app.css") %>"/>
+  </head>
+  <body>
+    <main role="main" class="container">
+      <div class="phx-hero">
+        Soil Analyzer
+      </div>
+      <br>
+      <%= render @view_module, @view_template, assigns %>
+    </main>
+    <script type="text/javascript" src="<%= Routes.static_path(@conn, "/js/app.js") %>"></script>
+  </body>
+  <!-- Quick hack to make small javascript function accessible -->
+  <script>
+    function showGridItem(id) {
+       var e = document.getElementById(id);
+       if(e.style.visibility == 'hidden')
+          e.style.visibility = 'visible';
+       else
+          e.style.display = 'hidden';
+    }
+  </script>
+</html>
