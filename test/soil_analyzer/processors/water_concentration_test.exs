@@ -17,9 +17,24 @@ defmodule SoilAnalyzer.Processors.WaterConcentrationTest do
       assert_has_error(request, "input must be in format 't n *grid'")
     end
 
+    test "will return an error when results requested is not an integer" do
+      request = WaterConcentration.run("x 1 1")
+      assert_has_error(request, "results_requested must be an integer")
+    end
+
+    test "will return an error when results requested is less than 0" do
+      request = WaterConcentration.run("-1 1 1")
+      assert_has_error(request, "results_requested cannot be less than 0")
+    end
+
+    test "will return an error when grid size is not an integer" do
+      request = WaterConcentration.run("1 x 1")
+      assert_has_error(request, "grid_size must be an integer")
+    end
+
     test "will return an error when grid size is less than 1" do
       request = WaterConcentration.run("1 0 1")
-      assert_has_error(request, "grid size must be greater than 0")
+      assert_has_error(request, "grid_size cannot be less than 1")
     end
 
     test "will return an error when grid size is greater than grid" do
@@ -32,24 +47,19 @@ defmodule SoilAnalyzer.Processors.WaterConcentrationTest do
       assert_has_error(request, "grid size does not match grid")
     end
 
-    test "will return an error when results requested is not an integer" do
-      request = WaterConcentration.run("x 1 1")
-      assert_has_error(request, "x must be an integer")
-    end
-
-    test "will return an error when grid size is not an integer" do
-      request = WaterConcentration.run("1 x 1")
-      assert_has_error(request, "x must be an integer")
-    end
-
     test "will return an error when grid value is not an integer" do
       request = WaterConcentration.run("1 1 1 x")
-      assert_has_error(request, "x is an invalid grid value")
+      assert_has_error(request, "x must be an integer")
+    end
+
+    test "will return an error when grid value is less than 0" do
+      request = WaterConcentration.run("1 1 1 -1")
+      assert_has_error(request, "-1 cannot be less than 0")
     end
 
     test "will return an error when grid value is greater than 9" do
-      request = WaterConcentration.run("1 1 1 11")
-      assert_has_error(request, "11 is too high of a measurement - must be less than 10")
+      request = WaterConcentration.run("1 1 1 10")
+      assert_has_error(request, "10 cannot be greater than 9")
     end
 
     test "will return the expected output #1" do

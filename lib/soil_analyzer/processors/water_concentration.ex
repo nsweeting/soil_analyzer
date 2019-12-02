@@ -51,6 +51,9 @@ defmodule SoilAnalyzer.Processors.WaterConcentration do
   # Private API
   ##################################
 
+  defguardp less_than(num, min) when is_integer(num) and (is_integer(min) and num < min)
+  defguardp greater_than(num, max) when is_integer(num) and (is_integer(max) and num > max)
+
   defp validate(:input, %Request{input: input} = request) when is_binary(input) do
     {:ok, request}
   end
@@ -74,20 +77,21 @@ defmodule SoilAnalyzer.Processors.WaterConcentration do
   defp validate(:results_requested, request) do
     [results_requested | _] = request.assigns.parsed_input
 
-    with {:ok, results_requested} <- validate_integer(request, results_requested) do
-      {:ok, Request.assign(request, :results_requested, results_requested)}
+    case validate_integer(results_requested, :results_requested, min: 0) do
+      {:ok, results_requested} ->
+        {:ok, Request.assign(request, :results_requested, results_requested)}
+
+      {:error, error} ->
+        Request.add_error(request, error)
     end
   end
 
   defp validate(:grid_size, request) do
     [_, grid_size | _] = request.assigns.parsed_input
 
-    with {:ok, grid_size} <- validate_integer(request, grid_size) do
-      if grid_size <= 0 do
-        Request.add_error(request, "grid size must be greater than 0")
-      else
-        {:ok, Request.assign(request, :grid_size, grid_size)}
-      end
+    case validate_integer(grid_size, :grid_size, min: 1) do
+      {:ok, grid_size} -> {:ok, Request.assign(request, :grid_size, grid_size)}
+      {:error, error} -> Request.add_error(request, error)
     end
   end
 
@@ -96,15 +100,9 @@ defmodule SoilAnalyzer.Processors.WaterConcentration do
 
     raw_grid
     |> Enum.reduce_while([], fn grid_value, new_grid ->
-      case Integer.parse(grid_value) do
-        {grid_value, ""} when grid_value > 9 ->
-          {:halt, {:error, "#{grid_value} is too high of a measurement - must be less than 10"}}
-
-        {grid_value, ""} ->
-          {:cont, new_grid ++ [grid_value]}
-
-        _ ->
-          {:halt, {:error, "#{grid_value} is an invalid grid value"}}
+      case validate_integer(grid_value, grid_value, min: 0, max: 9) do
+        {:ok, grid_value} -> {:cont, new_grid ++ [grid_value]}
+        {:error, error} -> {:halt, {:error, error}}
       end
     end)
     |> case do
@@ -124,10 +122,22 @@ defmodule SoilAnalyzer.Processors.WaterConcentration do
     end
   end
 
-  defp validate_integer(request, value) do
+  defp validate_integer(value, key_name, opts) do
+    min = Keyword.get(opts, :min)
+    max = Keyword.get(opts, :max)
+
     case Integer.parse(value) do
-      {value, ""} -> {:ok, value}
-      _ -> Request.add_error(request, "#{value} must be an integer")
+      {value, ""} when less_than(value, min) ->
+        {:error, "#{key_name} cannot be less than #{min}"}
+
+      {value, ""} when greater_than(value, max) ->
+        {:error, "#{key_name} cannot be greater than #{max}"}
+
+      {value, ""} ->
+        {:ok, value}
+
+      _ ->
+        {:error, "#{key_name} must be an integer"}
     end
   end
 
